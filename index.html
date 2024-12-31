@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Radzen Control Builder</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.8.8/standalone.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.8.8/parser-html.js"></script>
+
+    <!-- CodeMirror core -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/visual-studio.min.css">
+
+    <!-- CodeMirror dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/mode/multiplex.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/mode/simple.min.js"></script>
+    <style>
+        .container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        .controls-panel {
+            width: 200px;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-y: auto;
+        }
+
+        .control-box {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: move;
+            border-radius: 4px;
+        }
+
+        .control-box:hover {
+            background: #e9ecef;
+        }
+
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .CodeMirror {
+            height: 70% !important;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+        }
+
+        /* Custom syntax highlighting colors */
+        .cm-s-custom .cm-tag {
+            color: #800000 !important;
+        }
+
+        .cm-s-custom .cm-attribute {
+            color: #ff0000 !important;
+        }
+
+        .cm-s-custom .cm-string {
+            color: #0000ff !important;
+        }
+
+        .cm-s-custom .cm-razor {
+            color: #098658 !important;
+        }
+
+        .cm-s-custom .cm-comment {
+            color: #008000 !important;
+        }
+
+        .cm-s-custom .cm-keyword {
+            color: #0000ff !important;
+        }
+
+        .cm-s-custom .cm-variable {
+            color: #001080 !important;
+        }
+
+        .cm-s-custom .cm-def {
+            color: #795e26 !important;
+        }
+
+        .cm-s-custom .cm-atom {
+            color: #0000ff !important;
+        }
+
+        .cm-s-custom .cm-number {
+            color: #098658 !important;
+        }
+
+        .cm-s-custom .cm-property {
+            color: #001080 !important;
+        }
+
+        .cm-s-custom .cm-operator {
+            color: #000000 !important;
+        }
+
+        #preview {
+            height: 30%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            overflow: auto;
+            background: #ffffff;
+            color: #000000;
+            font-family: 'Consolas', monospace;
+            white-space: pre;
+        }
+
+        .dropzone {
+            border: 2px dashed #0066cc !important;
+            background: #f0f7ff !important;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0052a3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="controls-panel">
+            <div class="control-box" draggable="true" data-template="<RadzenText Text=&quot;Sample Text&quot; />">
+                RadzenText
+            </div>
+            <div class="control-box" draggable="true"
+                data-template="<RadzenButton Text=&quot;Click me&quot; Click=@OnClick />">
+                RadzenButton
+            </div>
+            <div class="control-box" draggable="true"
+                data-template="<RadzenTextBox @bind-Value=&quot;@textValue&quot; />">
+                RadzenTextBox
+            </div>
+            <div class="control-box" draggable="true" data-template="<RadzenPanel>
+    
+</RadzenPanel>">
+                RadzenPanel
+            </div>
+            <div class="control-box" draggable="true" data-template="<RadzenCard>
+    
+</RadzenCard>">
+                RadzenCard
+            </div>
+            <div class="control-box" draggable="true" data-template="<RadzenStack Orientation=&quot;Orientation.Horizontal&quot; Gap=&quot;1rem&quot;>
+    
+    </RadzenStack>">
+                RadzenStack
+            </div>
+        </div>
+        <div class="editor-panel">
+            <div class="toolbar">
+                <button onclick="formatCode()">Format Code</button>
+                <button onclick="CopyCode()">Copy</button>
+            </div>
+            <textarea id="htmlEditor">
+
+<RadzenLayout>
+    <RadzenText Text="Hello World" />
+    <RadzenButton Text="Click me" Click=@OnClick />
+    <RadzenTextBox @bind-Value="@textValue" />
+</RadzenLayout>
+
+</textarea>
+            <div id="preview"></div>
+        </div>
+    </div>
+
+    <script>
+
+        const formatShortcut = {
+            shiftKey: true,
+            altKey: true,
+            keyCode: 70 // 'F' key
+        };
+
+        document.addEventListener("keydown", (event) => {
+            if (
+                event.shiftKey === formatShortcut.shiftKey &&
+                event.altKey === formatShortcut.altKey &&
+                event.keyCode === formatShortcut.keyCode
+            ) {
+                event.preventDefault(); // Prevent default browser behavior
+                formatCode();
+            }
+        });
+        // Define custom mode for Razor with HTML
+        CodeMirror.defineMode("razorhtml", function (config) {
+            return CodeMirror.multiplexingMode(
+                CodeMirror.getMode(config, "text/html"), {
+                open: "@",
+                close: /[^A-Za-z0-9_\.]/,
+                mode: CodeMirror.getMode(config, "text/x-csharp"),
+                delimStyle: "razor"
+            }
+            );
+        });
+
+        // Initialize CodeMirror with custom mode and theme
+        const editor = CodeMirror.fromTextArea(document.getElementById('htmlEditor'), {
+            mode: "razorhtml",
+            theme: "custom",
+            lineNumbers: true,
+            autoCloseTags: true,
+            autoCloseBrackets: true,
+            matchTags: true,
+            indentUnit: 4,
+            tabSize: 4,
+            lineWrapping: true,
+            extraKeys: {
+                "Ctrl-Space": "autocomplete"
+            },
+            htmlMode: true
+        });
+
+        const preview = document.getElementById('preview');
+        const controlBoxes = document.querySelectorAll('.control-box');
+
+        function CopyCode() {
+            editor.setSelection({ line: 0, ch: 0 }, { line: editor.lineCount(), ch: 0 });
+            let text = editor.getSelection();
+            editor.setCursor(editor.getCursor());
+
+            copyToClipboard(text);
+        }
+
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                console.log('Text copied to clipboard:', text);
+            } catch (err) {
+                console.error('Failed to copy to clipboard:', err);
+            }
+        }
+
+        function formatCode() {
+            try {
+                const formattedCode = prettier.format(editor.getValue(), {
+                    parser: "html",
+                    plugins: prettierPlugins,
+                    printWidth: 80,
+                    tabWidth: 4,
+                    htmlWhitespaceSensitivity: "ignore",
+                    bracketSameLine: true
+                });
+
+                editor.setValue(formattedCode);
+                updatePreview();
+            } catch (error) {
+                console.error('Formatting error:', error);
+                alert('Error formatting code. Please check for syntax errors.');
+            }
+        }
+
+        // Add drag and drop functionality
+        controlBoxes.forEach(box => {
+            box.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', box.dataset.template);
+            });
+        });
+
+        editor.getWrapperElement().addEventListener('dragover', (e) => {
+            e.preventDefault();
+            editor.getWrapperElement().classList.add('dropzone');
+        });
+
+        editor.getWrapperElement().addEventListener('dragleave', () => {
+            editor.getWrapperElement().classList.remove('dropzone');
+        });
+
+        editor.getWrapperElement().addEventListener('drop', (e) => {
+            e.preventDefault();
+
+            // formatCode();
+        });
+
+        editor.on('change', updatePreview);
+
+        function updatePreview() {
+            preview.textContent = editor.getValue();
+        }
+
+        // Initial preview
+        updatePreview();
+    </script>
+</body>
+
+</html>
